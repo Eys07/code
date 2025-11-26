@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ./clone/eFIND
+      dockerfile: Dockerfile
+    ports:
+      - "7070:80"
+    container_name: efind-app
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+
+  db:
+    image: mariadb:10.11
+    container_name: efind-db
+    environment:
+      MYSQL_ROOT_PASSWORD: 3xQ7fuQVu7SyYCnu15Hj44U0wf0ozulOH2U3Ggt8shqZ1K27MuvC3tHqY9dyOZd6
+      MYSQL_DATABASE: barangay_poblacion_south
+    ports:
+      - "9008:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./clone/eFIND/admin/barangay_poblacion_south.sql:/docker-entrypoint-initdb.d/barangay_poblacion_south.sql:ro
+      - ./clone/eFIND/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+
+volumes:
+  db_data:
