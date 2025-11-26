@@ -1,0 +1,4 @@
+copy error
+paste copilot
+stop ctrl+c
+sudo docker compose up --build
