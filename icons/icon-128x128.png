@@ -1,0 +1,33 @@
+<!-- SVG Icon for PWA - 512x512 -->
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="512" height="512" rx="80" fill="url(#grad)"/>
+  
+  <!-- File icon -->
+  <g transform="translate(128, 80)">
+    <!-- File outline -->
+    <path d="M40 0 L200 0 L256 56 L256 352 L40 352 Z" fill="white" opacity="0.95"/>
+    
+    <!-- Folded corner -->
+    <path d="M200 0 L200 56 L256 56 Z" fill="#e0e0e0"/>
+    
+    <!-- File lines -->
+    <rect x="70" y="100" width="116" height="12" rx="6" fill="#667eea" opacity="0.4"/>
+    <rect x="70" y="140" width="156" height="12" rx="6" fill="#667eea" opacity="0.4"/>
+    <rect x="70" y="180" width="140" height="12" rx="6" fill="#667eea" opacity="0.4"/>
+    <rect x="70" y="220" width="120" height="12" rx="6" fill="#667eea" opacity="0.4"/>
+    
+    <!-- Upload arrow -->
+    <g transform="translate(110, 250)">
+      <rect x="28" y="0" width="20" height="60" fill="#764ba2"/>
+      <polygon points="38,0 8,35 68,35" fill="#764ba2"/>
+    </g>
+  </g>
+</svg>

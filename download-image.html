@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Download Button</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            text-align: center;
+        }
+        .download-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 32px;
+            text-decoration: none;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+            margin: 10px;
+            border: none;
+        }
+        .download-btn:hover {
+            background-color: #45a049;
+        }
+        img {
+            max-width: 300px;
+            margin: 20px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        .note {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image Download Example</h1>
+    
+    <div class="note">
+        <strong>Note:</strong> This works with local images or images from same domain. 
+        For testing, you can use your own image file path.
+    </div>
+
+    <div>
+        <img id="myImage" src="https://via.placeholder.com/300/FF5733/FFFFFF?text=Sample+Image" alt="Sample Image" crossorigin="anonymous">
+        <br>
+        <button class="download-btn" onclick="downloadImage()">
+            Download Image
+        </button>
+    </div>
+
+    <hr style="margin: 40px 0;">
+
+    <div>
+        <h2>Upload Your Own Image to Download</h2>
+        <input type="file" id="fileInput" accept="image/*" onchange="loadImage(event)" style="margin: 20px;">
+        <br>
+        <img id="uploadedImage" style="display: none; max-width: 300px; margin: 20px;">
+        <br>
+        <button class="download-btn" id="downloadUploaded" onclick="downloadUploadedImage()" style="display: none;">
+            Download Uploaded Image
+        </button>
+    </div>
+
+    <script>
+        function downloadImage() {
+            const img = document.getElementById('myImage');
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            
+            ctx.drawImage(img, 0, 0);
+            
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'downloaded-image.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            });
+        }
+
+        function loadImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('uploadedImage');
+                    img.src = e.target.result;
+                    img.style.display = 'inline-block';
+                    document.getElementById('downloadUploaded').style.display = 'inline-block';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function downloadUploadedImage() {
+            const img = document.getElementById('uploadedImage');
+            const link = document.createElement('a');
+            link.href = img.src;
+            link.download = 'my-image.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="File Upload PWA - Test Installation">
+    <meta name="theme-color" content="#667eea">
+    <title>File Upload PWA</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/icons/icon-152x152.png">
+    
+    <!-- iOS Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FileUpload">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            margin-bottom: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.95;
+        }
+        
+        h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .status-item {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .status-item.success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+        
+        .status-item.warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+        }
+        
+        .status-item.error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .status-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 10px 5px;
+            transition: transform 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .info-box {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin: 20px 0;
+        }
+        
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .info-box ul {
+            margin-left: 20px;
+            color: #666;
+            line-height: 2;
+        }
+        
+        .app-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .app-link {
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 8px;
+            text-align: center;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .app-link:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+        
+        .app-link-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📁 File Upload PWA</h1>
+            <p>Progressive Web App - Ready to Install</p>
+        </div>
+        
+        <div class="card">
+            <h2>🔍 PWA Status</h2>
+            <div class="status-grid">
+                <div class="status-item" id="swStatus">
+                    <div class="status-icon">⏳</div>
+                    <strong>Service Worker</strong>
+                    <div>Checking...</div>
+                </div>
+                <div class="status-item" id="manifestStatus">
+                    <div class="status-icon">⏳</div>
+                    <strong>Manifest</strong>
+                    <div>Checking...</div>
+                </div>
+                <div class="status-item" id="httpsStatus">
+                    <div class="status-icon">⏳</div>
+                    <strong>HTTPS</strong>
+                    <div>Checking...</div>
+                </div>
+                <div class="status-item" id="offlineStatus">
+                    <div class="status-icon">⏳</div>
+                    <strong>Network</strong>
+                    <div>Checking...</div>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <h3>✅ PWA Features Enabled:</h3>
+                <ul>
+                    <li>📱 Installable on desktop and mobile</li>
+                    <li>🔌 Works offline with cached content</li>
+                    <li>🔄 Background sync for failed uploads</li>
+                    <li>💾 Local storage with IndexedDB</li>
+                    <li>🔔 Push notifications (optional)</li>
+                    <li>⚡ Fast loading with service worker cache</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center;">
+                <button class="btn" id="installBtn" style="display: none;">
+                    📱 Install App
+                </button>
+                <button class="btn btn-secondary" onclick="testOffline()">
+                    🔌 Test Offline Mode
+                </button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>🚀 Choose Your Upload Method</h2>
+            <div class="app-links">
+                <a href="/upload_demo.html" class="app-link">
+                    <div class="app-link-icon">🔒</div>
+                    <h3>Basic Upload</h3>
+                    <p>Duplicate detection & force upload</p>
+                </a>
+                <a href="/upload_extract_demo.html" class="app-link">
+                    <div class="app-link-icon">📄</div>
+                    <h3>Upload + Extract</h3>
+                    <p>Upload with OCR text extraction</p>
+                </a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>📚 Documentation</h2>
+            <div class="app-links">
+                <a href="/README_UPLOAD.md" class="app-link">
+                    <div class="app-link-icon">📖</div>
+                    <h3>Upload Guide</h3>
+                </a>
+                <a href="/README_TEXT_EXTRACTION.md" class="app-link">
+                    <div class="app-link-icon">📖</div>
+                    <h3>Extraction Guide</h3>
+                </a>
+                <a href="/README_PWA.md" class="app-link">
+                    <div class="app-link-icon">📖</div>
+                    <h3>PWA Guide</h3>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Check PWA status
+        async function checkPWAStatus() {
+            // Service Worker
+            const swStatus = document.getElementById('swStatus');
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.getRegistration();
+                    if (registration) {
+                        swStatus.className = 'status-item success';
+                        swStatus.innerHTML = '<div class="status-icon">✅</div><strong>Service Worker</strong><div>Active</div>';
+                    } else {
+                        swStatus.className = 'status-item warning';
+                        swStatus.innerHTML = '<div class="status-icon">⚠️</div><strong>Service Worker</strong><div>Not registered</div>';
+                    }
+                } catch (e) {
+                    swStatus.className = 'status-item error';
+                    swStatus.innerHTML = '<div class="status-icon">❌</div><strong>Service Worker</strong><div>Error</div>';
+                }
+            } else {
+                swStatus.className = 'status-item error';
+                swStatus.innerHTML = '<div class="status-icon">❌</div><strong>Service Worker</strong><div>Not supported</div>';
+            }
+            
+            // Manifest
+            const manifestStatus = document.getElementById('manifestStatus');
+            try {
+                const response = await fetch('/manifest.json');
+                if (response.ok) {
+                    manifestStatus.className = 'status-item success';
+                    manifestStatus.innerHTML = '<div class="status-icon">✅</div><strong>Manifest</strong><div>Loaded</div>';
+                } else {
+                    manifestStatus.className = 'status-item error';
+                    manifestStatus.innerHTML = '<div class="status-icon">❌</div><strong>Manifest</strong><div>Not found</div>';
+                }
+            } catch (e) {
+                manifestStatus.className = 'status-item error';
+                manifestStatus.innerHTML = '<div class="status-icon">❌</div><strong>Manifest</strong><div>Error</div>';
+            }
+            
+            // HTTPS
+            const httpsStatus = document.getElementById('httpsStatus');
+            if (location.protocol === 'https:' || location.hostname === 'localhost') {
+                httpsStatus.className = 'status-item success';
+                httpsStatus.innerHTML = '<div class="status-icon">✅</div><strong>HTTPS</strong><div>Secure</div>';
+            } else {
+                httpsStatus.className = 'status-item warning';
+                httpsStatus.innerHTML = '<div class="status-icon">⚠️</div><strong>HTTPS</strong><div>HTTP only</div>';
+            }
+            
+            // Network
+            const offlineStatus = document.getElementById('offlineStatus');
+            if (navigator.onLine) {
+                offlineStatus.className = 'status-item success';
+                offlineStatus.innerHTML = '<div class="status-icon">🟢</div><strong>Network</strong><div>Online</div>';
+            } else {
+                offlineStatus.className = 'status-item warning';
+                offlineStatus.innerHTML = '<div class="status-icon">🔴</div><strong>Network</strong><div>Offline</div>';
+            }
+        }
+        
+        function testOffline() {
+            if (confirm('This will open the offline page. Continue?')) {
+                window.location.href = '/offline.html';
+            }
+        }
+        
+        // Update status on network changes
+        window.addEventListener('online', checkPWAStatus);
+        window.addEventListener('offline', checkPWAStatus);
+        
+        // Initial check
+        checkPWAStatus();
+    </script>
+    
+    <!-- PWA Handler -->
+    <script src="/pwa-handler.js"></script>
+</body>
+</html>

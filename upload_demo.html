@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Secure file upload with advanced duplicate detection">
+    <meta name="theme-color" content="#667eea">
+    <title>File Upload - Duplicate Detection Demo</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/icons/icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="96x96" href="/icons/icon-96x96.png">
+    <link rel="apple-touch-icon" sizes="128x128" href="/icons/icon-128x128.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="384x384" href="/icons/icon-384x384.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512x512.png">
+    
+    <!-- iOS Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FileUpload">
+    
+    <!-- MS Tile -->
+    <meta name="msapplication-TileColor" content="#667eea">
+    <meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .upload-area:hover {
+            background: #f0f2ff;
+            border-color: #764ba2;
+        }
+        
+        .upload-area.dragover {
+            background: #e8ebff;
+            border-color: #764ba2;
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .upload-area h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .upload-area p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .selected-file {
+            background: #f0f2ff;
+            border: 1px solid #667eea;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .selected-file.show {
+            display: block;
+        }
+        
+        .selected-file strong {
+            color: #667eea;
+        }
+        
+        .options {
+            margin-bottom: 20px;
+        }
+        
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        .checkbox-wrapper label {
+            cursor: pointer;
+            color: #333;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f1f3f4;
+            color: #333;
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background: #e8eaed;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .message.show {
+            display: block;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .message.warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .progress-bar.show {
+            display: block;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .history {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+        
+        .history h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .history-item {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .history-item p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .history-item strong {
+            color: #333;
+        }
+        
+        .no-history {
+            text-align: center;
+            color: #999;
+            padding: 30px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔒 Secure File Upload</h1>
+            <p>Advanced duplicate detection with force upload option</p>
+        </div>
+        
+        <div class="content">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <h3>Click to select file or drag and drop</h3>
+                <p>All file types supported • Automatic duplicate detection</p>
+            </div>
+            
+            <input type="file" id="fileInput" />
+            
+            <div class="selected-file" id="selectedFile">
+                <strong>Selected:</strong> <span id="fileName"></span>
+            </div>
+            
+            <div class="options">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="forceUpload" />
+                    <label for="forceUpload">Force upload (override duplicate detection)</label>
+                </div>
+            </div>
+            
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div class="message" id="message"></div>
+            
+            <div class="button-group">
+                <button class="btn-primary" id="uploadBtn" disabled>Upload File</button>
+                <button class="btn-secondary" id="clearBtn" disabled>Clear</button>
+            </div>
+            
+            <div class="history">
+                <h2>📋 Upload History</h2>
+                <div id="historyList">
+                    <div class="no-history">No uploads yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const selectedFileDiv = document.getElementById('selectedFile');
+        const fileNameSpan = document.getElementById('fileName');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const forceUpload = document.getElementById('forceUpload');
+        const message = document.getElementById('message');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const historyList = document.getElementById('historyList');
+        
+        let selectedFile = null;
+        
+        // Upload area click
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // File selection
+        fileInput.addEventListener('change', (e) => {
+            handleFileSelect(e.target.files[0]);
+        });
+        
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFileSelect(e.dataTransfer.files[0]);
+        });
+        
+        // Handle file selection
+        function handleFileSelect(file) {
+            if (file) {
+                selectedFile = file;
+                fileNameSpan.textContent = `${file.name} (${formatFileSize(file.size)})`;
+                selectedFileDiv.classList.add('show');
+                uploadBtn.disabled = false;
+                clearBtn.disabled = false;
+                hideMessage();
+            }
+        }
+        
+        // Upload button
+        uploadBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+            
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('force_upload', forceUpload.checked ? '1' : '0');
+            formData.append('user_id', 'demo_user');
+            
+            uploadBtn.disabled = true;
+            showProgress();
+            hideMessage();
+            
+            try {
+                const response = await fetch('upload_handler.php?action=upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                hideProgress();
+                
+                if (result.success) {
+                    showMessage(result.message, 'success');
+                    clearSelection();
+                    loadHistory();
+                } else {
+                    if (result.error === 'duplicate') {
+                        showMessage(result.message + '\n\n' + result.hint, 'warning');
+                    } else {
+                        showMessage(result.message, 'error');
+                    }
+                    uploadBtn.disabled = false;
+                }
+            } catch (error) {
+                hideProgress();
+                showMessage('Upload failed: ' + error.message, 'error');
+                uploadBtn.disabled = false;
+            }
+        });
+        
+        // Clear button
+        clearBtn.addEventListener('click', () => {
+            clearSelection();
+        });
+        
+        // Clear selection
+        function clearSelection() {
+            selectedFile = null;
+            fileInput.value = '';
+            selectedFileDiv.classList.remove('show');
+            uploadBtn.disabled = true;
+            clearBtn.disabled = true;
+            forceUpload.checked = false;
+        }
+        
+        // Show message
+        function showMessage(text, type) {
+            message.textContent = text;
+            message.className = 'message show ' + type;
+        }
+        
+        // Hide message
+        function hideMessage() {
+            message.classList.remove('show');
+        }
+        
+        // Show progress
+        function showProgress() {
+            progressBar.classList.add('show');
+            progressFill.style.width = '100%';
+        }
+        
+        // Hide progress
+        function hideProgress() {
+            setTimeout(() => {
+                progressBar.classList.remove('show');
+                progressFill.style.width = '0%';
+            }, 500);
+        }
+        
+        // Load upload history
+        async function loadHistory() {
+            try {
+                const response = await fetch('upload_handler.php?action=history');
+                const result = await response.json();
+                
+                if (result.success && result.data.length > 0) {
+                    historyList.innerHTML = result.data.map(item => `
+                        <div class="history-item">
+                            <p><strong>File:</strong> ${item.original_name}</p>
+                            <p><strong>Size:</strong> ${formatFileSize(item.file_size)}</p>
+                            <p><strong>Uploaded:</strong> ${item.upload_time}</p>
+                            <p><strong>By:</strong> ${item.uploaded_by}</p>
+                            ${item.is_forced ? '<p style="color: #e67e22;">⚠️ Forced upload</p>' : ''}
+                        </div>
+                    `).reverse().join('');
+                } else {
+                    historyList.innerHTML = '<div class="no-history">No uploads yet</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load history:', error);
+            }
+        }
+        
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+        
+        // Load history on page load
+        loadHistory();
+    </script>
+    
+    <!-- PWA Handler -->
+    <script src="/pwa-handler.js"></script>
+</body>
+</html>

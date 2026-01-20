@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Upload files with duplicate detection and text extraction using OCR">
+    <meta name="theme-color" content="#667eea">
+    <title>File Upload with Text Extraction</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/icons/icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="96x96" href="/icons/icon-96x96.png">
+    <link rel="apple-touch-icon" sizes="128x128" href="/icons/icon-128x128.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="384x384" href="/icons/icon-384x384.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512x512.png">
+    
+    <!-- iOS Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FileUpload">
+    
+    <!-- MS Tile -->
+    <meta name="msapplication-TileColor" content="#667eea">
+    <meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .main-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            margin-bottom: 20px;
+        }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9ff;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            background: #eef1ff;
+            border-color: #764ba2;
+        }
+        
+        .upload-area.dragover {
+            background: #e0e7ff;
+            border-color: #4338ca;
+        }
+        
+        .upload-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .options-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 10px;
+        }
+        
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .option-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .option-group label {
+            font-weight: 500;
+            color: #4a5568;
+        }
+        
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .select {
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px 5px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .result-box {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .result-box.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .result-box.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .result-box.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        .extracted-text-section {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .text-display {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-box {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #718096;
+            margin-top: 5px;
+        }
+        
+        .capabilities-box {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .cap-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+        }
+        
+        .cap-status {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .cap-status.available {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .cap-status.unavailable {
+            background: #f56565;
+            color: white;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 File Upload & Text Extraction</h1>
+            <p>Upload PDF, DOCX, or images and extract text using OCR</p>
+        </div>
+        
+        <div class="main-card">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <h2>Drop file here or click to upload</h2>
+                <p>Supports: PDF, DOCX, JPG, PNG, TIFF</p>
+                <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.jpg,.jpeg,.png,.tiff,.tif">
+            </div>
+            
+            <div class="options-section">
+                <h3>Upload & Extraction Options</h3>
+                <div class="options-grid">
+                    <div class="option-group">
+                        <input type="checkbox" id="extractText" class="checkbox" checked>
+                        <label for="extractText">Extract text automatically</label>
+                    </div>
+                    <div class="option-group">
+                        <input type="checkbox" id="useOcr" class="checkbox" checked>
+                        <label for="useOcr">Use OCR for scanned documents</label>
+                    </div>
+                    <div class="option-group">
+                        <input type="checkbox" id="forceUpload" class="checkbox">
+                        <label for="forceUpload">Force upload (override duplicates)</label>
+                    </div>
+                    <div class="option-group">
+                        <label for="ocrLang">OCR Language:</label>
+                        <select id="ocrLang" class="select">
+                            <option value="eng">English</option>
+                            <option value="spa">Spanish</option>
+                            <option value="fra">French</option>
+                            <option value="deu">German</option>
+                            <option value="ita">Italian</option>
+                            <option value="por">Portuguese</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-primary" id="uploadBtn" disabled>Upload & Extract</button>
+                <button class="btn btn-secondary" id="clearBtn">Clear</button>
+                <button class="btn btn-secondary" id="checkCapsBtn">Check System Capabilities</button>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 15px; color: #718096;">Processing...</p>
+            </div>
+            
+            <div class="result-box" id="resultBox"></div>
+            
+            <div class="extracted-text-section" id="extractedSection">
+                <h3>Extracted Text</h3>
+                <div class="stats-grid" id="statsGrid"></div>
+                <div class="text-display" id="textDisplay"></div>
+                <div style="margin-top: 15px; text-align: center;">
+                    <button class="btn btn-secondary" id="copyTextBtn">Copy Text</button>
+                    <button class="btn btn-secondary" id="downloadTextBtn">Download as TXT</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const checkCapsBtn = document.getElementById('checkCapsBtn');
+        const resultBox = document.getElementById('resultBox');
+        const loading = document.getElementById('loading');
+        const extractedSection = document.getElementById('extractedSection');
+        const textDisplay = document.getElementById('textDisplay');
+        const statsGrid = document.getElementById('statsGrid');
+        const copyTextBtn = document.getElementById('copyTextBtn');
+        const downloadTextBtn = document.getElementById('downloadTextBtn');
+        
+        let selectedFile = null;
+        let extractedText = '';
+        
+        // Upload area interactions
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelect(e.dataTransfer.files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+        
+        function handleFileSelect(file) {
+            selectedFile = file;
+            uploadArea.innerHTML = `
+                <div class="upload-icon">✅</div>
+                <h2>${file.name}</h2>
+                <p>Size: ${formatFileSize(file.size)}</p>
+                <p>Type: ${file.type}</p>
+            `;
+            uploadBtn.disabled = false;
+            hideResult();
+            extractedSection.style.display = 'none';
+        }
+        
+        uploadBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+            
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('extract_text', document.getElementById('extractText').checked ? '1' : '0');
+            formData.append('use_ocr', document.getElementById('useOcr').checked ? '1' : '0');
+            formData.append('force_upload', document.getElementById('forceUpload').checked ? '1' : '0');
+            formData.append('ocr_lang', document.getElementById('ocrLang').value);
+            
+            loading.style.display = 'block';
+            uploadBtn.disabled = true;
+            hideResult();
+            
+            try {
+                const response = await fetch('upload_handler.php?action=upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                loading.style.display = 'none';
+                uploadBtn.disabled = false;
+                
+                if (result.success) {
+                    showResult('Upload successful! ✅', 'success');
+                    
+                    if (result.extraction) {
+                        if (result.extraction.success) {
+                            extractedText = result.extraction.text;
+                            displayExtractedText(result.extraction);
+                        } else {
+                            showResult('Upload successful but text extraction failed: ' + result.extraction.message, 'info');
+                        }
+                    }
+                } else {
+                    showResult('Error: ' + result.message, 'error');
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                uploadBtn.disabled = false;
+                showResult('Network error: ' + error.message, 'error');
+            }
+        });
+        
+        clearBtn.addEventListener('click', () => {
+            selectedFile = null;
+            fileInput.value = '';
+            uploadArea.innerHTML = `
+                <div class="upload-icon">📁</div>
+                <h2>Drop file here or click to upload</h2>
+                <p>Supports: PDF, DOCX, JPG, PNG, TIFF</p>
+            `;
+            uploadBtn.disabled = true;
+            hideResult();
+            extractedSection.style.display = 'none';
+        });
+        
+        checkCapsBtn.addEventListener('click', async () => {
+            loading.style.display = 'block';
+            
+            try {
+                const response = await fetch('upload_handler.php?action=capabilities');
+                const result = await response.json();
+                
+                loading.style.display = 'none';
+                
+                if (result.success) {
+                    displayCapabilities(result.capabilities);
+                } else {
+                    showResult('Failed to get capabilities', 'error');
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                showResult('Network error: ' + error.message, 'error');
+            }
+        });
+        
+        copyTextBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(extractedText).then(() => {
+                copyTextBtn.textContent = 'Copied! ✅';
+                setTimeout(() => {
+                    copyTextBtn.textContent = 'Copy Text';
+                }, 2000);
+            });
+        });
+        
+        downloadTextBtn.addEventListener('click', () => {
+            const blob = new Blob([extractedText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'extracted_text.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+        
+        function displayExtractedText(extraction) {
+            textDisplay.textContent = extraction.text || 'No text extracted.';
+            
+            statsGrid.innerHTML = `
+                <div class="stat-box">
+                    <div class="stat-value">${extraction.char_count || 0}</div>
+                    <div class="stat-label">Characters</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">${extraction.word_count || 0}</div>
+                    <div class="stat-label">Words</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">${extraction.method || 'N/A'}</div>
+                    <div class="stat-label">Method</div>
+                </div>
+                ${extraction.pages_processed ? `
+                <div class="stat-box">
+                    <div class="stat-value">${extraction.pages_processed}</div>
+                    <div class="stat-label">Pages</div>
+                </div>
+                ` : ''}
+            `;
+            
+            extractedSection.style.display = 'block';
+        }
+        
+        function displayCapabilities(caps) {
+            const capsHtml = `
+                <div class="capabilities-box">
+                    <h3>System Capabilities</h3>
+                    <div class="cap-item">
+                        <div class="cap-status ${caps.tesseract ? 'available' : 'unavailable'}">
+                            ${caps.tesseract ? '✓' : '✗'}
+                        </div>
+                        <span><strong>Tesseract OCR:</strong> ${caps.tesseract ? 'Available' : 'Not installed'}</span>
+                    </div>
+                    <div class="cap-item">
+                        <div class="cap-status ${caps.pdftotext ? 'available' : 'unavailable'}">
+                            ${caps.pdftotext ? '✓' : '✗'}
+                        </div>
+                        <span><strong>PDF Text Extraction:</strong> ${caps.pdftotext ? 'Available' : 'Not installed'}</span>
+                    </div>
+                    <div class="cap-item">
+                        <div class="cap-status ${caps.imagemagick ? 'available' : 'unavailable'}">
+                            ${caps.imagemagick ? '✓' : '✗'}
+                        </div>
+                        <span><strong>ImageMagick:</strong> ${caps.imagemagick ? 'Available' : 'Not installed'}</span>
+                    </div>
+                    <div class="cap-item">
+                        <div class="cap-status ${caps.zip_extension ? 'available' : 'unavailable'}">
+                            ${caps.zip_extension ? '✓' : '✗'}
+                        </div>
+                        <span><strong>DOCX Support:</strong> ${caps.zip_extension ? 'Available' : 'PHP ZIP extension needed'}</span>
+                    </div>
+                    <hr style="margin: 15px 0;">
+                    <h4>Supported Formats:</h4>
+                    <div class="cap-item">
+                        <div class="cap-status ${caps.supported_formats.pdf ? 'available' : 'unavailable'}">
+                            ${caps.supported_formats.pdf ? '✓' : '✗'}
+                        </div>
+                        <span>PDF files</span>
+                    </div>
+                    <div class="cap-item">
+                        <div class="cap-status ${caps.supported_formats.docx ? 'available' : 'unavailable'}">
+                            ${caps.supported_formats.docx ? '✓' : '✗'}
+                        </div>
+                        <span>DOCX files</span>
+                    </div>
+                    <div class="cap-item">
+                        <div class="cap-status ${caps.supported_formats.images ? 'available' : 'unavailable'}">
+                            ${caps.supported_formats.images ? '✓' : '✗'}
+                        </div>
+                        <span>Image files (OCR)</span>
+                    </div>
+                </div>
+            `;
+            
+            resultBox.innerHTML = capsHtml;
+            resultBox.className = 'result-box info';
+            resultBox.style.display = 'block';
+        }
+        
+        function showResult(message, type) {
+            resultBox.textContent = message;
+            resultBox.className = `result-box ${type}`;
+            resultBox.style.display = 'block';
+        }
+        
+        function hideResult() {
+            resultBox.style.display = 'none';
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+    </script>
+    
+    <!-- PWA Handler -->
+    <script src="/pwa-handler.js"></script>
+</body>
+</html>
