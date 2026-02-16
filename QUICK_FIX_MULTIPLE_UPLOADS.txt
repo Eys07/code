@@ -1,0 +1,55 @@
+========================================
+MULTIPLE FILE UPLOAD FIX - SUMMARY
+========================================
+
+PROBLEM:
+--------
+Multiple image uploads were NOT working in "Add New Ordinances" modal.
+Users could only upload ONE image at a time.
+
+SOLUTION:
+---------
+Updated ordinances.php to support multiple file uploads like resolutions and minutes already do.
+
+CHANGES MADE:
+-------------
+
+1. HTML Forms (2 places in ordinances.php)
+   - Add Modal: Changed name="image_file" to name="image_file[]" + added "multiple" attribute
+   - Edit Modal: Changed name="image_file" to name="image_file[]" + added "multiple" attribute
+
+2. PHP Backend (2 places in ordinances.php)
+   - Add Handler: Changed from single file to array processing with foreach loop
+   - Update Handler: Changed from single file to array processing with foreach loop
+   - Multiple URLs stored as pipe-separated: url1|url2|url3
+
+3. JavaScript Functions (2 new functions added)
+   - processFilesWithAutoFill(): Handles multiple files for add modal
+   - processFiles(): Handles multiple files for edit modal
+
+RESULT:
+-------
+✅ Ordinances: NOW SUPPORTS MULTIPLE UPLOADS
+✅ Resolutions: Already supported (unchanged)
+✅ Minutes: Already supported (unchanged)
+
+HOW IT WORKS:
+-------------
+1. User selects multiple images (Ctrl+Click or Shift+Click)
+2. Each file is uploaded to MinIO with unique name
+3. All file URLs are stored in database as: url1|url2|url3
+4. OCR processes each image and combines text
+5. Form fields auto-fill with combined extracted text
+
+TESTING:
+--------
+Test adding ordinances with:
+- Single image (should work)
+- Multiple images (3-5 images - should work now!)
+- Mixed file types (JPG + PNG + PDF - should work)
+
+MODIFIED FILE:
+--------------
+/home/delfin/code/clone/eFIND/admin/ordinances.php
+
+DATE: 2026-02-04

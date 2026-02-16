@@ -269,19 +269,36 @@ class TextExtractor {
         // Register namespace
         $xml->registerXPathNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main');
         
-        // Extract all text nodes
-        $textNodes = $xml->xpath('//w:t');
-        $text = '';
-        foreach ($textNodes as $textNode) {
-            $text .= (string)$textNode;
+        // Extract text with paragraph structure preserved
+        $paragraphs = $xml->xpath('//w:p');
+        $textLines = [];
+        
+        foreach ($paragraphs as $paragraph) {
+            // Get all text nodes within this paragraph
+            $paragraph->registerXPathNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main');
+            $textNodes = $paragraph->xpath('.//w:t');
+            
+            if ($textNodes) {
+                $paraText = '';
+                foreach ($textNodes as $textNode) {
+                    $paraText .= (string)$textNode;
+                }
+                $paraText = trim($paraText);
+                if ($paraText !== '') {
+                    $textLines[] = $paraText;
+                }
+            }
         }
+        
+        $text = implode("\n", $textLines);
         
         return [
             'success' => true,
             'text' => $text,
             'method' => 'docx_xml_extraction',
             'char_count' => strlen($text),
-            'word_count' => str_word_count($text)
+            'word_count' => str_word_count($text),
+            'line_count' => count($textLines)
         ];
     }
     
